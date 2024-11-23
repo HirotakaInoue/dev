@@ -6,19 +6,7 @@ use axum::{
 use jsonwebtoken::{encode, errors, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 
-pub struct User {
-    id: String,
-    password: String,
-}
-
-impl User {
-    fn new(id: &str, password: &str) -> Self {
-        User {
-            id: id.to_string(),
-            password: password.to_string(),
-        }
-    }
-}
+use crate::models::User;
 
 #[derive(Deserialize)]
 pub struct AuthRequest {
