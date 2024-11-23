@@ -1,4 +1,4 @@
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(100) PRIMARY KEY,
     password VARCHAR(100) NOT NULL
 );
