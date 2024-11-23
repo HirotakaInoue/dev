@@ -5,7 +5,7 @@ services:
     image: postgres:latest
     container_name: postgres_db
     ports:
-      - "8081:3000"
+      - "8081:5432"
     environment:
       POSTGRES_USER: usr
       POSTGRES_PASSWORD: pass
