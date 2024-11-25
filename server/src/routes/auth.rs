@@ -1,10 +1,12 @@
 use axum::{
+    extract::Extension,
     extract::{rejection::JsonRejection, Json},
     http::StatusCode,
     response::IntoResponse,
 };
 use jsonwebtoken::{encode, errors, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
+use sqlx::{query_as, PgPool};
 
 use crate::models::User;
 
@@ -14,7 +16,10 @@ pub struct AuthRequest {
     password: String,
 }
 
-pub async fn login(payload: Result<Json<AuthRequest>, JsonRejection>) -> impl IntoResponse {
+pub async fn login(
+    Extension(extension): Extension<PgPool>,
+    payload: Result<Json<AuthRequest>, JsonRejection>,
+) -> impl IntoResponse {
     match &payload {
         Ok(_payload) => (),
         Err(_) => {
@@ -26,13 +31,24 @@ pub async fn login(payload: Result<Json<AuthRequest>, JsonRejection>) -> impl In
     }
     let payload = payload.unwrap().0;
 
-    // ダミーデータベースのユーザー
-    let dummy_user = User::new("admin", "admin");
+    let users = query_as!(User, " SELECT id, password FROM users ")
+        .fetch_all(&extension)
+        .await
+        .unwrap();
 
-    // ユーザー名とパスワードの確認
-    if payload.id == dummy_user.id && payload.password == dummy_user.password {
+    let user = users.iter().find(|user| user.id == payload.id);
+
+    if user.is_none() {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({ "error": "id not found" })),
+        );
+    }
+    let user = user.unwrap();
+
+    if user.password != payload.password {
         // JWTトークン生成
-        match generate_token(&dummy_user.id).await {
+        match generate_token(&user.id).await {
             Ok(token) => return (StatusCode::OK, Json(serde_json::json!({ "token": token }))),
             Err(_) => {
                 return (
