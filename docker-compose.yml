@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_db
+    ports:
+      - "8081:5432"
+    environment:
+      POSTGRES_USER: usr
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: tmp_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: ./server
+      dockerfile: dockerfile
+    container_name: rust_server
+    ports:
+      - "8080:3000"
+    environment:
+      DATABASE_URL: postgres://usr:pass@db:5432/tmp_db
+    depends_on:
+      - db
+
+volumes:
+  db_data:
