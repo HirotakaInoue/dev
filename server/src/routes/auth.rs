@@ -1,5 +1,5 @@
 use axum::{
-    extract::Extension,
+    extract::State,
     extract::{rejection::JsonRejection, Json},
     http::StatusCode,
     response::IntoResponse,
@@ -17,7 +17,7 @@ pub struct AuthRequest {
 }
 
 pub async fn login(
-    Extension(extension): Extension<PgPool>,
+    State(extension): State<PgPool>,
     payload: Result<Json<AuthRequest>, JsonRejection>,
 ) -> impl IntoResponse {
     match &payload {
